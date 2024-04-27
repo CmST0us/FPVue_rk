@@ -341,7 +341,6 @@ int read_rtp_stream(int port, MppPacket *packet, uint8_t* nal_buffer) {
 
 	uint8_t* rx_buffer = malloc(1024 * 1024);
     
-	int wait_start = 1;
 	int poc = 0;
 	int ret = 0;
 	struct timespec recv_ts;
@@ -401,12 +400,9 @@ int read_rtp_stream(int port, MppPacket *packet, uint8_t* nal_buffer) {
 			break;
 		}
 	
-		uint8_t nal_type_hevc = (nal[4] >> 1) & 0x3F;
-		if (wait_start==1 && nal_type_hevc == 1) { //hevc
-			continue;
-		}
-		wait_start = 0;
-		if (nal_type_hevc == 19) {
+		uint8_t nal_type_h264 = nal[4] & 0x1F;
+
+		if (nal_type_h264 == 5) {
 			poc = 0;
 		}
 		frame_stats[poc]=recv_ts;
@@ -560,7 +556,7 @@ int main(int argc, char **argv)
 		video_zpos = 4;
 	}
 		
-	MppCodingType mpp_type = MPP_VIDEO_CodingHEVC;
+	MppCodingType mpp_type = MPP_VIDEO_CodingAVC;
 	ret = mpp_check_support_format(MPP_CTX_DEC, mpp_type);
 	assert(!ret);
 
